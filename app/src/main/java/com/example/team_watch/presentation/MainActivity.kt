@@ -23,17 +23,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.*
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
+import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 
 import com.example.team_watch.R
-import com.example.team_watch.presentation.theme.TEAM_WatchTheme
 import com.example.team_watch.viewmodel.StopwatchViewModel
 
 class MainActivity : ComponentActivity() {
@@ -43,30 +42,66 @@ class MainActivity : ComponentActivity() {
             val viewModel = viewModel<StopwatchViewModel>()
             val timerState by viewModel.timerState.collectAsStateWithLifecycle()
             val stopwatchText by viewModel.stopwatchText.collectAsStateWithLifecycle()
-            // Scaffold: show common ui-elements where they are supposed to
-            Scaffold(
 
-            ) {
+
+            val dataTestText = "Data Overview"
+
+            // AppScaffold: show common ui-elements where they are supposed to
+            AppScaffold(
+                timeText = {
+                    TimeText()
+                }
+            )
+            {
+                val listState = rememberTransformingLazyColumnState()
+                val transformationSpec = rememberTransformationSpec()
+                ScreenScaffold(
+                    scrollState = listState,
+                ) { contentPadding ->
+                    TransformingLazyColumn(
+                        contentPadding = contentPadding,
+                        state = listState,
+                    ) {
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                        item {
+                            Stopwatch(
+                                state = timerState,
+                                text = stopwatchText,
+                                onToggleRunning = viewModel::toggleIsRunning,
+                                onReset = viewModel::resetTimer,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight(),
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                        item {
+                            DataOverview(
+                                text = dataTestText,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                            )
+                        }
+                    }
+                }
 
             }
-            Stopwatch(
-                state = timerState,
-                text = stopwatchText,
-                onToggleRunning = viewModel::toggleIsRunning,
-                onReset = viewModel::resetTimer,
-                modifier = Modifier.fillMaxSize()
-            )
         }
     }
 }
 
 @Composable
 private fun Stopwatch(
-    state:TimerState,
-    text:String,
+    state: TimerState,
+    text: String,
     onToggleRunning: () -> Unit,
     onReset: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.background(Color.Black),
@@ -107,6 +142,25 @@ private fun Stopwatch(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun DataOverview(
+    text: String,
+    modifier: Modifier = Modifier
+){
+    Column(
+        modifier = modifier.background(Color.Black),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = text,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
